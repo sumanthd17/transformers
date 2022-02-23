@@ -306,10 +306,10 @@ def main():
         data_files = {}
         for lang in languages:
             data_files[f'{lang}_train'] = {
-                args.train_dir + f'/{lang}_train.txt'
+                args.train_dir + f'/{lang}.txt'
             }
             data_files[f'{lang}_validation'] = {
-                args.validation_dir + f'/{lang}_validation.txt'
+                args.validation_dir + f'/{lang}.txt'
             }
 
         raw_datasets = load_dataset('text', data_files=data_files)
