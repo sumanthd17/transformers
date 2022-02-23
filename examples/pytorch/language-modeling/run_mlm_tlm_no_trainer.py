@@ -31,7 +31,6 @@ from itertools import chain
 from pathlib import Path
 import numpy as np
 
-import datasets
 import torch
 from datasets import load_dataset, concatenate_datasets
 from torch.utils.data import DataLoader
@@ -255,6 +254,7 @@ def main():
     # Setup logging, we only want one process per machine to log things on the screen.
     # accelerator.is_local_main_process is only True for one process per machine.
     logger.setLevel(logging.INFO if accelerator.is_local_main_process else logging.ERROR)
+    import datasets
     if accelerator.is_local_main_process:
         datasets.utils.logging.set_verbosity_warning()
         transformers.utils.logging.set_verbosity_info()
