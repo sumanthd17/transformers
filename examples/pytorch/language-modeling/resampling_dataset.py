@@ -1,6 +1,6 @@
 import numpy as np
 
-from plasma_utils import plasma_utils
+import plasma_utils
 from base_wrapper_dataset import BaseWrapperDataset
 
 class ResamplingDataset(BaseWrapperDataset):
