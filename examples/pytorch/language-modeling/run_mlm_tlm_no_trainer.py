@@ -55,7 +55,7 @@ from transformers import (
 from transformers.file_utils import get_full_repo_name
 from transformers.utils.versions import require_version
 
-from .resampling_dataset import ResamplingDataset
+from resampling_dataset import ResamplingDataset
 import sentencepiece
 
 

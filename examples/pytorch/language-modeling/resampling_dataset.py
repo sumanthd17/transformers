@@ -1,7 +1,7 @@
 import numpy as np
 
-from .plasma_utils import plasma_utils
-from .base_wrapper_dataset import BaseWrapperDataset
+from plasma_utils import plasma_utils
+from base_wrapper_dataset import BaseWrapperDataset
 
 class ResamplingDataset(BaseWrapperDataset):
     """Randomly samples from a given dataset at each epoch.
