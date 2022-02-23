@@ -56,6 +56,7 @@ from transformers.file_utils import get_full_repo_name
 from transformers.utils.versions import require_version
 
 from .resampling_dataset import ResamplingDataset
+import sentencepiece
 
 
 logger = logging.getLogger(__name__)
@@ -106,17 +107,25 @@ def parse_args():
         action="store_true",
         help="If passed, pad all samples to `max_length`. Otherwise, dynamic padding is used.",
     )
+    # parser.add_argument(
+    #     "--model_name_or_path",
+    #     type=str,
+    #     help="Path to pretrained model or model identifier from huggingface.co/models.",
+    #     required=True,
+    # )
+    # parser.add_argument(
+    #     "--config_name",
+    #     type=str,
+    #     default=None,
+    #     help="Pretrained config name or path if not the same as model_name",
+    # )
     parser.add_argument(
-        "--model_name_or_path",
-        type=str,
-        help="Path to pretrained model or model identifier from huggingface.co/models.",
-        required=True,
+        "--custom_config",
+        type=str, default=None, help="Custom configuration file to use instead of the pretrained one."
     )
     parser.add_argument(
-        "--config_name",
-        type=str,
-        default=None,
-        help="Pretrained config name or path if not the same as model_name",
+        "--custom_tokenizer",
+        type=str, default=None, help="Custom tokenizer to use instead of the pretrained one. (Path to *.model)"
     )
     parser.add_argument(
         "--tokenizer_name",
@@ -346,35 +355,50 @@ def main():
     #
     # In distributed training, the .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
-    if args.config_name:
-        config = AutoConfig.from_pretrained(args.config_name)
-    elif args.model_name_or_path:
-        config = AutoConfig.from_pretrained(args.model_name_or_path)
-    else:
-        config = CONFIG_MAPPING[args.model_type]()
-        logger.warning("You are instantiating a new config instance from scratch.")
 
-    if args.tokenizer_name:
-        tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, use_fast=not args.use_slow_tokenizer)
-    elif args.model_name_or_path:
-        tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=not args.use_slow_tokenizer)
-    else:
-        raise ValueError(
-            "You are instantiating a new tokenizer from scratch. This is not supported by this script."
-            "You can do it from another script, save it, and load it from here, using --tokenizer_name."
-        )
+    # add custom tokenizer and custom model config
 
-    if args.model_name_or_path:
-        model = AutoModelForMaskedLM.from_pretrained(
-            args.model_name_or_path,
-            from_tf=bool(".ckpt" in args.model_name_or_path),
-            config=config,
-        )
-    else:
+    if args.custom_config:
+        config = AutoConfig.from_pretrained(args.custom_config)
         logger.info("Training new model from scratch")
         model = AutoModelForMaskedLM.from_config(config)
 
+    if args.custom_tokenizer:
+        tokenizer = sentencepiece.SentencePieceProcessor()
+        tokenizer.load(args.custom_tokenizer)
+
     model.resize_token_embeddings(len(tokenizer))
+
+    # if args.config_name:
+    #     config = AutoConfig.from_pretrained(args.config_name)
+    # elif args.model_name_or_path:
+    #     config = AutoConfig.from_pretrained(args.model_name_or_path)
+    # else:
+    #     config = CONFIG_MAPPING[args.model_type]()
+    #     logger.warning("You are instantiating a new config instance from scratch.")
+
+    # if args.tokenizer_name:
+    #     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, use_fast=not args.use_slow_tokenizer)
+    # elif args.model_name_or_path:
+    #     # tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=not args.use_slow_tokenizer)
+    #     tokenizer = sentencepiece.SentencePieceProcessor()
+    #     tokenizer.load(args.model_name_or_path)
+    # else:
+    #     raise ValueError(
+    #         "You are instantiating a new tokenizer from scratch. This is not supported by this script."
+    #         "You can do it from another script, save it, and load it from here, using --tokenizer_name."
+    #     )
+
+    # if args.model_name_or_path:
+    #     model = AutoModelForMaskedLM.from_pretrained(
+    #         args.model_name_or_path,
+    #         from_tf=bool(".ckpt" in args.model_name_or_path),
+    #         config=config,
+    #     )
+    # else:
+    #     logger.info("Training new model from scratch")
+    #     model = AutoModelForMaskedLM.from_config(config)
+
 
     # Preprocessing the datasets.
     # First we tokenize all the texts.
