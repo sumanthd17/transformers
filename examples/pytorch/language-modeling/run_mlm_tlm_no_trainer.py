@@ -34,6 +34,7 @@ import numpy as np
 import torch
 from datasets import load_dataset, concatenate_datasets
 from torch.utils.data import DataLoader
+from torch.optim import AdamW
 from tqdm.auto import tqdm
 
 import transformers
@@ -42,7 +43,6 @@ from huggingface_hub import Repository
 from transformers import (
     CONFIG_MAPPING,
     MODEL_MAPPING,
-    AdamW,
     AutoConfig,
     AutoModelForMaskedLM,
     AutoTokenizer,
