@@ -305,12 +305,8 @@ def main():
         languages = args.languages.split(",")
         data_files = {}
         for lang in languages:
-            data_files[f'{lang}_train'] = {
-                args.train_dir + f'/{lang}.txt'
-            }
-            data_files[f'{lang}_validation'] = {
-                args.validation_dir + f'/{lang}.txt'
-            }
+            data_files[f'{lang}_train'] = args.train_dir + f'/{lang}.txt'
+            data_files[f'{lang}_validation'] = args.validation_dir + f'/{lang}.txt'
 
         raw_datasets = load_dataset('text', data_files=data_files)
 
@@ -363,9 +359,11 @@ def main():
         logger.info("Training new model from scratch")
         model = AutoModelForMaskedLM.from_config(config)
 
+    # if args.custom_tokenizer:
+    #     tokenizer = sentencepiece.SentencePieceProcessor()
+    #     tokenizer.load(args.custom_tokenizer)
     if args.custom_tokenizer:
-        tokenizer = sentencepiece.SentencePieceProcessor()
-        tokenizer.load(args.custom_tokenizer)
+        tokenizer = AutoTokenizer.from_pretrained(args.custom_tokenizer)
 
     model.resize_token_embeddings(len(tokenizer))
 
@@ -402,7 +400,7 @@ def main():
 
     # Preprocessing the datasets.
     # First we tokenize all the texts.
-    column_names = raw_datasets["train"].column_names
+    column_names = raw_datasets["en_train"].column_names
     text_column_name = "text" if "text" in column_names else column_names[0]
 
     if args.max_seq_length is None:
@@ -420,6 +418,7 @@ def main():
                 f"model ({tokenizer.model_max_length}). Using max_seq_length={tokenizer.model_max_length}."
             )
         max_seq_length = min(args.max_seq_length, tokenizer.model_max_length)
+        # max_seq_length = args.max_seq_length
 
     if args.line_by_line:
         # When using line_by_line, we just tokenize each nonempty line.
