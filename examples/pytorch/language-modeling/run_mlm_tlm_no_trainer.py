@@ -604,10 +604,30 @@ def main():
     progress_bar = tqdm(range(args.max_train_steps), disable=not accelerator.is_local_main_process)
     completed_steps = 0
 
+    def temp_sampling(dataset, size_ratio, seed, epoch, replace):
+        actual_size = np.ceil(len(dataset) * size_ratio).astype(int)
+        
+        rng = np.random.RandomState(
+            [
+                42,
+                seed,
+                epoch
+            ]
+        )
+
+        cur_indices = rng.choice(
+            len(dataset),
+            actual_size,
+            replace
+        )
+
+        return dataset[cur_indices]
+
     for epoch in range(args.num_train_epochs):
         model.train()
+
         datasets = [
-            ResamplingDataset(
+            temp_sampling(
                 tokenized_datasets[f'{lang}_train'],
                 size_ratio=size_ratio[i],
                 seed=args.seed,
@@ -616,6 +636,16 @@ def main():
             )
             for i, lang in enumerate(languages)
         ]
+        # datasets = [
+        #     ResamplingDataset(
+        #         tokenized_datasets[f'{lang}_train'],
+        #         size_ratio=size_ratio[i],
+        #         seed=args.seed,
+        #         epoch=epoch,
+        #         replace=size_ratio[i] >= 1.0,
+        #     )
+        #     for i, lang in enumerate(languages)
+        # ]
 
         train_dataset = concatenate_datasets(datasets)
         train_dataloader = DataLoader(
